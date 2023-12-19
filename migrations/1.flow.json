@@ -1,0 +1,28 @@
+[
+    {
+        "qid": "1",
+        "description": "What is your age?",
+        "answer_type": "FreeText", 
+        "answers": [
+            {
+                "aid": "1",
+                "answer_description": "",
+                "answer_mapping": "Age",
+                "next_question": "2"
+            }
+        ]
+    },
+    {
+        "qid": "2",
+        "description": "What is your gender?",
+        "answer_type": "FreeText", 
+        "answers": [
+            {
+                "aid": "1",
+                "answer_description": "",
+                "answer_mapping": "Gender",
+                "next_question": null
+            }
+        ]
+    }
+]

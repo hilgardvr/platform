@@ -7,8 +7,7 @@ import Text.Mustache.Types ((~>))
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
 import Data.Foldable (find)
-import Migrations (openDatabase, runMigrations)
-
+--import Migrations (openDatabase, runMigrations)
 
 port :: Int
 port = 3000
@@ -16,20 +15,8 @@ port = 3000
 newtype Organisation = Organisation { name :: TL.Text }
 
 instance ToMustache Organisation where
-    toMustache (Organisation { name = n}) = 
+    toMustache (Organisation { name = n }) = 
         object ["name" ~> n]
-        --
-data Question = Question {
-    org :: Organisation
-    , qid :: TL.Text
-}
-
-instance ToMustache Question where
-    toMustache q = object 
-        [
-            "org" ~> org q
-            , "qid" ~> qid q
-        ]
 
 
 searchParam :: TL.Text -> [(TL.Text, TL.Text)] -> TL.Text
@@ -44,8 +31,8 @@ main =
         templateName = "index.html"
         dbName = "platform"
     in do
-        conn <- openDatabase dbName
-        _ <- runMigrations conn
+        --conn <- openDatabase dbName
+        --_ <- runMigrations conn
         compiled <- automaticCompile searchSpace templateName
         case compiled of 
             Left err -> print err
@@ -56,15 +43,15 @@ main =
                         let o = trace (show p) Organisation p
                             t = substitute tmpl o
                         html $ trace ("templ: " ++ show t) $ TL.fromStrict t
-                    get "/:org/:qid" $ do
-                        r <- request
-                        --b <- liftIO $ requestBody r
-                        ps <- params
-                        let o = searchParam "org" ps
-                            i = searchParam "qid" ps
-                            q = Question {
-                                    org = Organisation o
-                                    , qid = i
-                                }
-                            t = substitute tmpl q
-                        html $ trace ("templ: " ++ show t) $ TL.fromStrict t
+                    --get "/:org/:qid" $ do
+                    --    r <- request
+                    --    --b <- liftIO $ requestBody r
+                    --    ps <- params
+                    --    let o = searchParam "org" ps
+                    --        i = searchParam "qid" ps
+                    --        org = Organisation o
+                    --        q = Question {
+                    --                , qid = i
+                    --            }
+                    --        t = substitute tmpl q
+                    --    html $ trace ("templ: " ++ show t) $ TL.fromStrict t
