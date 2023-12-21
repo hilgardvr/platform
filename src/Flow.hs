@@ -7,22 +7,18 @@ module Flow
     , AnswerType
     , AnswerMapping
     , getQuestionFlow
+    , getQuestionFor
     ) where
 
 import Text.Mustache (ToMustache (toMustache), object, (~>))
 import Data.Aeson (FromJSON, ToJSON, decode)
 import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
+import Data.List (find)
 
 flowFile :: FilePath
 flowFile = "./migrations/1.flow.json"
 
-getQuestionFlow :: IO [Question]
-getQuestionFlow = do
-    bjson <- B.readFile flowFile
-    case decode bjson of
-        Nothing -> error "Could not decode flow json"
-        Just d -> return d
 
 data Question = Question 
     { qid :: String 
@@ -35,6 +31,7 @@ instance ToMustache Question where
     toMustache q = object 
         [ "qid" ~> qid q
         , "description" ~> description q 
+        , "answers" ~> answers q
         ]
 
 instance FromJSON Question
@@ -66,3 +63,13 @@ data AnswerMapping = Age | Gender deriving (Show, Generic)
 instance FromJSON AnswerMapping
 instance ToJSON AnswerMapping
 
+getQuestionFlow :: IO [Question]
+getQuestionFlow = do
+    bjson <- B.readFile flowFile
+    case decode bjson of
+        Nothing -> error "Could not decode flow json"
+        Just d -> return d
+
+getQuestionFor :: Maybe String -> [Question] -> Maybe Question
+getQuestionFor Nothing qs = find (\e -> qid e == "1") qs
+getQuestionFor (Just q) qs = find (\e -> qid e == q) qs
