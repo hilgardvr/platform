@@ -1,13 +1,17 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Main (main) where
-import Web.Scotty (scotty, get, param, html, request, params)
+import Web.Scotty (scotty, get, param, html, request, params, post)
 import Text.Mustache (automaticCompile, object, ToMustache (toMustache), substitute)
-import Text.Mustache.Types ((~>))
+import Text.Mustache.Types ((~>), TemplateCache)
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
 import Data.Foldable (find)
 import Flow (getQuestionFlow, Question, getQuestionFor)
+import GHC.Conc (pseq)
+import Network.Wai (Request(requestBody))
+import Control.Monad.IO.Class (MonadIO(liftIO))
+import Text.Mustache.Compile (cacheFromList)
 --import qualified Text.Mustache.Compile as index
 --import Migrations (openDatabase, runMigrations)
 
@@ -17,8 +21,11 @@ port = 3000
 searchSpace :: [FilePath]
 searchSpace = ["./templates"]
 
-templateName :: String
-templateName = "index.mustache"
+indexTemplate :: String
+indexTemplate = "index.mustache"
+
+questionTemplate :: String
+questionTemplate = "question.mustache"
 
 dbName :: String
 dbName = "platform"
@@ -47,24 +54,47 @@ searchParam p ps = case snd <$> find (\e -> fst e == p) ps of
     Just p' -> p'
 
 
+--compileTemplates :: IO (Either ParseE TemplateCache)
+--compileTemplates = do
+--    compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
+--    compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
+--    return cacheFromList [compiledIndexTemplate, compiledQuestionTemplate]
+    
+
 main :: IO ()
 main = do
-    questionFlow <- getQuestionFlow
-    compiled <- automaticCompile searchSpace templateName
-    case compiled of 
+    questionFlow <- getQuestionFlow 
+    compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
+    compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
+    case compiledIndexTemplate of 
         Left err -> print err
         Right tmpl ->
             scotty port $ do
                 get "/:org" $ do
                     p <- param "org"
-                    let o = trace (show p) Organisation p
+                    let o = Organisation p
                         q = getQuestionFor Nothing questionFlow
                         t = case q of 
                             Just q' -> 
                                 let oq = OrgQuestion o q'
-                                in trace (show oq) substitute tmpl oq
+                                in substitute tmpl oq
                             Nothing -> trace "No question found" substitute tmpl o
-                    html $ trace ("templ: " ++ show t) $ TL.fromStrict t
+                    html $ trace (show t) TL.fromStrict t
+                post "/:org/answer/:aid" $ do
+                    ps <- params
+                    r <- request
+                    b <- liftIO $ requestBody r
+                    let o = trace ("body:" ++ show b) searchParam "org" ps
+                        org = Organisation o
+                        i = searchParam "aid" ps
+                        nextQ = getQuestionFor (Just $ TL.unpack i) questionFlow
+                        t = case nextQ of
+                            Just q -> 
+                                let oq = OrgQuestion org q
+                                in substitute tmpl oq
+                            Nothing -> trace "No question found" substitute tmpl org
+                    html $ trace (show t) TL.fromStrict t
+
                 --get "/:org/:qid" $ do
                 --    r <- request
                 --    --b <- liftIO $ requestBody r

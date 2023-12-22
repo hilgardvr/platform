@@ -72,4 +72,10 @@ getQuestionFlow = do
 
 getQuestionFor :: Maybe String -> [Question] -> Maybe Question
 getQuestionFor Nothing qs = find (\e -> qid e == "1") qs
-getQuestionFor (Just q) qs = find (\e -> qid e == q) qs
+getQuestionFor (Just ans) qs = 
+    case find (\a -> aid a == ans) (concatMap answers qs) of 
+        Nothing -> Nothing
+        Just a -> 
+            case next_question a of 
+                Nothing -> Nothing 
+                Just q' -> find (\e -> qid e == q') qs

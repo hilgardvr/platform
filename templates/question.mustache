@@ -1,8 +1,11 @@
-<h2>Question: {{question.description}}</h2>
-{{#question.answers}}
-    <form hx-post="/answer/{{answer.aid}}">
-        <input type="text" name="test">
-        <input type="submit" value="Submit">
-    </form>
-{{/question.answers}}
+<div id="question">
+    <h2>Question: {{question.description}}</h2>
+    <h4>{{question.answers}}</h4>
+    {{#question.answers}}
+        <form hx-post="{{org.name}}/answer/{{aid}}" hx-target="#question">
+            <input type="text" name="test">
+            <input type="submit" value="Submit">
+        </form>
+    {{/question.answers}}
+</div>
 
