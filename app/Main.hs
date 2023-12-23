@@ -2,18 +2,16 @@
 
 module Main (main) where
 import Web.Scotty (scotty, get, param, html, request, params, post)
-import Text.Mustache (automaticCompile, object, ToMustache (toMustache), substitute)
+import Text.Mustache (automaticCompile, object, ToMustache (toMustache), substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
-import Data.Foldable (find)
+import Data.Foldable (find, Foldable (toList))
 import Flow (getQuestionFlow, Question, getQuestionFor)
 import GHC.Conc (pseq)
 import Network.Wai (Request(requestBody))
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Text.Mustache.Compile (cacheFromList)
---import qualified Text.Mustache.Compile as index
---import Migrations (openDatabase, runMigrations)
 
 port :: Int
 port = 3000
@@ -53,19 +51,35 @@ searchParam p ps = case snd <$> find (\e -> fst e == p) ps of
     Nothing -> error $ "No param found for: " ++ show p
     Just p' -> p'
 
+--lookupOrError :: String -> TemplateCache -> Template
+--lookupOrError s tc = 
+--    case lookup s (toList tc) of
+--        Nothing -> error $ "No tempate key " ++ s
+--        Just t -> t
+--
 
---compileTemplates :: IO (Either ParseE TemplateCache)
---compileTemplates = do
---    compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
---    compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
---    return cacheFromList [compiledIndexTemplate, compiledQuestionTemplate]
-    
+compileTemplates :: IO TemplateCache
+compileTemplates = do
+    compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
+    compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
+    let tmpls = sequence [compiledIndexTemplate, compiledQuestionTemplate]
+    case tmpls of
+        Left err -> error $ show err
+        Right ts -> return $ cacheFromList ts
 
 main :: IO ()
 main = do
     questionFlow <- getQuestionFlow 
     compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
+    let indexTemplate = case compiledIndexTemplate of
+            Left err -> error $ show err
+            Right t -> t
     compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
+    let questionTemplate = case compiledIndexTemplate of
+            Left err -> error $ show err
+            Right t -> t
+    --ts <- compileTemplates
+    --putStrLn $ show ts
     case compiledIndexTemplate of 
         Left err -> print err
         Right tmpl ->
@@ -78,32 +92,21 @@ main = do
                             Just q' -> 
                                 let oq = OrgQuestion o q'
                                 in substitute tmpl oq
-                            Nothing -> trace "No question found" substitute tmpl o
+                            Nothing -> trace "No question found" $ substitute indexTemplate o
                     html $ trace (show t) TL.fromStrict t
                 post "/:org/answer/:aid" $ do
                     ps <- params
                     r <- request
                     b <- liftIO $ requestBody r
-                    let o = trace ("body:" ++ show b) searchParam "org" ps
+                    let o = searchParam "org" ps
                         org = Organisation o
                         i = searchParam "aid" ps
-                        nextQ = getQuestionFor (Just $ TL.unpack i) questionFlow
+                        nextQ = trace ("body:" ++ show b ++ "\n") getQuestionFor (Just $ TL.unpack i) questionFlow
                         t = case nextQ of
                             Just q -> 
                                 let oq = OrgQuestion org q
-                                in substitute tmpl oq
-                            Nothing -> trace "No question found" substitute tmpl org
+                                in case compiledQuestionTemplate of
+                                    Left err -> error ("Template Error: " ++ show err)
+                                    Right t' -> trace (show q) substitute t' oq
+                            Nothing -> trace "No question found" $ substitute questionTemplate o
                     html $ trace (show t) TL.fromStrict t
-
-                --get "/:org/:qid" $ do
-                --    r <- request
-                --    --b <- liftIO $ requestBody r
-                --    ps <- params
-                --    let o = searchParam "org" ps
-                --        i = searchParam "qid" ps
-                --        org = Organisation o
-                --        q = Question {
-                --                , qid = i
-                --            }
-                --        t = substitute tmpl q
-                --    html $ trace ("templ: " ++ show t) $ TL.fromStrict t
