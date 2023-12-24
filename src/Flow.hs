@@ -7,7 +7,7 @@ module Flow
     , AnswerType
     , AnswerMapping
     , getQuestionFlow
-    , getQuestionFor
+    , getQuestionForAnswer
     ) where
 
 import Text.Mustache (ToMustache (toMustache), object, (~>))
@@ -70,9 +70,9 @@ getQuestionFlow = do
         Nothing -> error "Could not decode flow json"
         Just d -> return d
 
-getQuestionFor :: Maybe String -> [Question] -> Maybe Question
-getQuestionFor Nothing qs = find (\e -> qid e == "1") qs
-getQuestionFor (Just ans) qs = 
+getQuestionForAnswer :: Maybe String -> [Question] -> Maybe Question
+getQuestionForAnswer Nothing qs = find (\e -> qid e == "1") qs
+getQuestionForAnswer (Just ans) qs = 
     case find (\a -> aid a == ans) (concatMap answers qs) of 
         Nothing -> Nothing
         Just a -> 

@@ -28,6 +28,7 @@ library
       Flow
       Lib
       Migrations
+      Templates
   other-modules:
       Paths_platform
   autogen-modules:
