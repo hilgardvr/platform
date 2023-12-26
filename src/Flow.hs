@@ -19,7 +19,6 @@ import Data.List (find)
 flowFile :: FilePath
 flowFile = "./migrations/1.flow.json"
 
-
 data Question = Question 
     { qid :: String 
     , description :: String

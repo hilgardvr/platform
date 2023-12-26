@@ -22,7 +22,7 @@ description:         Please see the README on GitHub at <https://github.com/hilg
 dependencies:
 - base >= 4.7 && < 5
 - scotty
-- mustache >= 2.4.2 && < 2.4.3
+- mustache
 - text
 - wai
 - sqlite-simple
