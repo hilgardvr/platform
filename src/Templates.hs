@@ -5,15 +5,15 @@ module Templates
 , questionTemplate
 , searchSpace
 , Product
-, OrgQuestion
-, getOrg
+, ProductQuestion
+, getProduct
 , getOrgQuestion
 , buildTemplate
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
 import Flow (Question, getQuestionForAnswer)
-import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute)
+import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
 
@@ -31,23 +31,23 @@ homeTemplate = "home.mustache"
 
 newtype Product = Product { name :: TL.Text } deriving (Show)
 
-getOrg :: TL.Text -> Product
-getOrg = Product
+getProduct :: TL.Text -> Product
+getProduct = Product
 
 instance ToMustache Product where
     toMustache (Product { name = n }) = 
         object ["name" ~> n]
 
-data OrgQuestion = OrgQuestion 
+data ProductQuestion = ProductQuestion 
     { prod :: Product
     , question :: Maybe Question
     } deriving (Show)
 
-getOrgQuestion :: Product -> Maybe Question -> OrgQuestion
-getOrgQuestion = OrgQuestion
+getOrgQuestion :: Product -> Maybe Question -> ProductQuestion
+getOrgQuestion = ProductQuestion
 
-instance ToMustache OrgQuestion where
-    toMustache ( OrgQuestion { prod = o , question = q }) = 
+instance ToMustache ProductQuestion where
+    toMustache ( ProductQuestion { prod = o , question = q }) = 
         object 
             [ "prod" ~> o
             , "question" ~> q
@@ -63,14 +63,25 @@ compiledTemplates = do
         Left err -> error $ show err
         Right ts -> return $ cacheFromList ts
 
+templateOrError :: String -> IO Template
+templateOrError tmpl = do
+    tc <- compiledTemplates
+    tmpl' <- compileTemplateWithCache searchSpace tc tmpl
+    case tmpl' of
+        Left err -> error $ show err
+        Right t' -> return t'
+    
+
 buildTemplate :: Maybe String -> Product -> [Question] -> IO T.Text
-buildTemplate aid o qf = 
-    let 
+buildTemplate aid prod qf =
+    let
         q = getQuestionForAnswer aid qf
-        oq = OrgQuestion o q
+        pq = ProductQuestion prod q
     in do
-        tc <- compiledTemplates
-        tmpl <- compileTemplateWithCache searchSpace tc indexTemplate
-        case tmpl of
-            Left err -> error $ show err
-            Right t -> return $ substitute t oq
+        case aid of 
+            Nothing -> do
+                t' <- templateOrError indexTemplate
+                return $ substitute t' pq
+            Just aid' -> do
+                t' <- templateOrError questionTemplate
+                return $ substitute t' pq

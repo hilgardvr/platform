@@ -2,7 +2,7 @@
     <h2>Question: {{question.description}}</h2>
     <h4>{{question.answers}}</h4>
     {{#question.answers}}
-        <form hx-post="{{prod.name}}/answer/{{aid}}" hx-target="body">
+        <form hx-post="{{prod.name}}/answer/{{aid}}" hx-target="#question">
             <input type="text" name="answer"/>
             <input type="submit" value="Submit"/>
         </form>

@@ -7,9 +7,8 @@ import Debug.Trace (trace)
 import Data.Foldable (find)
 import Flow (getQuestionFlow)
 import Control.Monad.IO.Class (MonadIO(liftIO))
-import Templates (getOrg, buildTemplate)
+import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
-import qualified Data.ByteString.Lazy as BL
 
 port :: Int
 port = 3000
@@ -26,52 +25,48 @@ trimChar :: Char -> String -> String
 trimChar c str = reverse $ dropper $ reverse $ dropper str
     where dropper = dropWhile (==c) 
 
-
 splitAtAndDrop :: String -> Char -> [String]
 splitAtAndDrop [] _ = []
 splitAtAndDrop xs c = 
-    let
-        xs' = dropWhile (== c) xs
-    in
-        case elemIndex c xs' of
-            Nothing -> [xs']
-            Just i -> take i xs' : splitAtAndDrop (drop i xs') c
+    let xs' = dropWhile (== c) xs
+    in case elemIndex c xs' of
+        Nothing -> [xs']
+        Just i -> take i xs' : splitAtAndDrop (drop i xs') c
 
 bodyPairs :: String -> [(String, String)]
 bodyPairs b = 
-    let
-        pms = splitAtAndDrop b '&'
-    in
-        map (\e -> 
-            let pr = splitAtAndDrop e '='
-            in if length pr == 2
-               then (head pr, pr !!1)
-               else (head pr, "")
-        ) pms
+    let bodyPrs = splitAtAndDrop b '&'
+    in map (\e -> 
+        let pr = splitAtAndDrop e '='
+        in if length pr == 2
+           then (head pr, pr !!1)
+           else trace ("No '=' in body pair " ++ show pr) (head pr, "")
+        ) bodyPrs
 
 parseFromBody :: String -> String -> Maybe String
 parseFromBody bod key = 
-    let
-        pairs = bodyPairs bod
+    let pairs = bodyPairs bod
         pair = find (\e -> fst e == key) pairs
-    in
-        fmap snd pair
+    in fmap snd pair
     
 main :: IO ()
 main = do
     questionFlow <- getQuestionFlow 
     scotty port $ do
+        get "/" $ do
+            t <- liftIO $ readFile "./templates/home.mustache"
+            html $ TL.pack t
         get "/:prod" $ do
             ps <- params
             let p = getParam "prod" ps
-            t <- liftIO $ buildTemplate Nothing (getOrg p) questionFlow
+            t <- liftIO $ buildTemplate Nothing (getProduct p) questionFlow
             html $  TL.fromStrict t
         post "/:prod/answer/:aid" $ do
             ps <- params
             b <- body
             let o = getParam "prod" ps
                 ans = parseFromBody (trimChar '"' $ show b) "answer"
-                org' = getOrg o
+                org' = getProduct o
                 aid = getParam "aid" ps
             t <- trace ("body: " ++ show b ++ "\nans: " ++ show ans) liftIO $ buildTemplate (Just $ TL.unpack aid) org' questionFlow
             html $ TL.fromStrict t
