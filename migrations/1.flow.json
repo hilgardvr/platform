@@ -15,11 +15,17 @@
     {
         "qid": "2",
         "description": "What is your gender?",
-        "answer_type": "FreeText", 
+        "answer_type": "SingleSelect", 
         "answers": [
             {
                 "aid": "2",
-                "answer_description": "",
+                "answer_description": "Male",
+                "answer_mapping": "Gender",
+                "next_question": null
+            },
+            {
+                "aid": "3",
+                "answer_description": "Female",
                 "answer_mapping": "Gender",
                 "next_question": null
             }

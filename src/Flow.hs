@@ -2,9 +2,9 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Flow 
-    ( Question
+    ( Question (answer_type)
     , Answer
-    , AnswerType
+    , AnswerType (SingleSelect, FreeText)
     , AnswerMapping
     , getQuestionFlow
     , getQuestionForAnswer

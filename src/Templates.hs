@@ -12,7 +12,7 @@ module Templates
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-import Flow (Question, getQuestionForAnswer)
+import Flow (Question (answer_type), getQuestionForAnswer, AnswerType (SingleSelect))
 import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
@@ -25,6 +25,9 @@ indexTemplate = "index.mustache"
 
 questionTemplate :: FilePath
 questionTemplate = "question.mustache"
+
+singleSelectQuestionTemplate :: FilePath
+singleSelectQuestionTemplate = "single-select-question.mustache"
 
 homeTemplate :: FilePath
 homeTemplate = "home.mustache"
@@ -57,8 +60,9 @@ compiledTemplates :: IO TemplateCache
 compiledTemplates = do
     compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
     compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
+    compiledSingleSelectTemplate <- automaticCompile searchSpace singleSelectQuestionTemplate
     compiledHomeTemplate <- automaticCompile searchSpace homeTemplate
-    let tmpls = sequence [compiledIndexTemplate, compiledQuestionTemplate, compiledHomeTemplate]
+    let tmpls = sequence [compiledIndexTemplate, compiledQuestionTemplate, compiledHomeTemplate, compiledSingleSelectTemplate]
     case tmpls of
         Left err -> error $ show err
         Right ts -> return $ cacheFromList ts
@@ -73,15 +77,29 @@ templateOrError tmpl = do
     
 
 buildTemplate :: Maybe String -> Product -> [Question] -> IO T.Text
-buildTemplate aid prod qf =
+buildTemplate aid prod' qf =
     let
         q = getQuestionForAnswer aid qf
-        pq = ProductQuestion prod q
+        pq = ProductQuestion prod' q
     in do
         case aid of 
             Nothing -> do
                 t' <- templateOrError indexTemplate
                 return $ substitute t' pq
-            Just aid' -> do
-                t' <- templateOrError questionTemplate
-                return $ substitute t' pq
+            Just _ ->
+                case q of
+                    Nothing -> do
+                        t' <- templateOrError questionTemplate
+                        return $ substitute t' pq
+                    Just q' -> do
+                        let answerType = answer_type q'
+                        case answerType of
+                            SingleSelect -> do
+                                t' <- templateOrError singleSelectQuestionTemplate
+                                return $ substitute t' pq
+                            _ -> do
+                                t' <- templateOrError questionTemplate
+                                return $ substitute t' pq
+                            
+                            
+
