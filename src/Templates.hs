@@ -4,7 +4,7 @@ module Templates
 ( indexTemplate
 , questionTemplate
 , searchSpace
-, Organisation
+, Product
 , OrgQuestion
 , getOrg
 , getOrgQuestion
@@ -26,27 +26,30 @@ indexTemplate = "index.mustache"
 questionTemplate :: FilePath
 questionTemplate = "question.mustache"
 
-newtype Organisation = Organisation { name :: TL.Text } deriving (Show)
+homeTemplate :: FilePath
+homeTemplate = "home.mustache"
 
-getOrg :: TL.Text -> Organisation
-getOrg = Organisation
+newtype Product = Product { name :: TL.Text } deriving (Show)
 
-instance ToMustache Organisation where
-    toMustache (Organisation { name = n }) = 
+getOrg :: TL.Text -> Product
+getOrg = Product
+
+instance ToMustache Product where
+    toMustache (Product { name = n }) = 
         object ["name" ~> n]
 
 data OrgQuestion = OrgQuestion 
-    { org :: Organisation
+    { prod :: Product
     , question :: Maybe Question
     } deriving (Show)
 
-getOrgQuestion :: Organisation -> Maybe Question -> OrgQuestion
+getOrgQuestion :: Product -> Maybe Question -> OrgQuestion
 getOrgQuestion = OrgQuestion
 
 instance ToMustache OrgQuestion where
-    toMustache ( OrgQuestion { org = o , question = q }) = 
+    toMustache ( OrgQuestion { prod = o , question = q }) = 
         object 
-            [ "org" ~> o
+            [ "prod" ~> o
             , "question" ~> q
             ]
 
@@ -54,12 +57,13 @@ compiledTemplates :: IO TemplateCache
 compiledTemplates = do
     compiledIndexTemplate <- automaticCompile searchSpace indexTemplate
     compiledQuestionTemplate <- automaticCompile searchSpace questionTemplate
-    let tmpls = sequence [compiledIndexTemplate, compiledQuestionTemplate]
+    compiledHomeTemplate <- automaticCompile searchSpace homeTemplate
+    let tmpls = sequence [compiledIndexTemplate, compiledQuestionTemplate, compiledHomeTemplate]
     case tmpls of
         Left err -> error $ show err
         Right ts -> return $ cacheFromList ts
 
-buildTemplate :: Maybe String -> Organisation -> [Question] -> IO T.Text
+buildTemplate :: Maybe String -> Product -> [Question] -> IO T.Text
 buildTemplate aid o qf = 
     let 
         q = getQuestionForAnswer aid qf

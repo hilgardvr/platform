@@ -22,8 +22,8 @@ getParam p ps = case snd <$> find (\e -> fst e == p) ps of
     Nothing -> error $ "No param found for: " ++ show p
     Just p' -> p'
 
-trimChars :: Char -> String -> String
-trimChars c str = reverse $ dropper $ reverse $ dropper str
+trimChar :: Char -> String -> String
+trimChar c str = reverse $ dropper $ reverse $ dropper str
     where dropper = dropWhile (==c) 
 
 
@@ -61,16 +61,16 @@ main :: IO ()
 main = do
     questionFlow <- getQuestionFlow 
     scotty port $ do
-        get "/:org" $ do
+        get "/:prod" $ do
             ps <- params
-            let o = getParam "org" ps
-            t <- liftIO $ buildTemplate Nothing (getOrg o) questionFlow
+            let p = getParam "prod" ps
+            t <- liftIO $ buildTemplate Nothing (getOrg p) questionFlow
             html $  TL.fromStrict t
-        post "/:org/answer/:aid" $ do
+        post "/:prod/answer/:aid" $ do
             ps <- params
             b <- body
-            let o = getParam "org" ps
-                ans = parseFromBody (trimChars '"' $ show b) "answer"
+            let o = getParam "prod" ps
+                ans = parseFromBody (trimChar '"' $ show b) "answer"
                 org' = getOrg o
                 aid = getParam "aid" ps
             t <- trace ("body: " ++ show b ++ "\nans: " ++ show ans) liftIO $ buildTemplate (Just $ TL.unpack aid) org' questionFlow

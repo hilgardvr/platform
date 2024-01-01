@@ -1,0 +1,16 @@
+<html>
+    <head> 
+        <script src="https://unpkg.com/htmx.org@1.9.9" integrity="sha384-QFjmbokDn2DjBjq+fM+8LUIVrAgqcNW2s0PjAxHETgRn9l4fvX31ZxDxvwQnyMOX" crossorigin="anonymous"></script>
+    </head>
+    <body>
+        <h1>Sparkie Product Platform</h1> 
+        <p>
+            Please select a product:
+            <button
+                hx-get="/protector"
+                hx-trigger="click"
+                hx-target="body">
+                Protector
+            </button>
+    </body>
+</html>
