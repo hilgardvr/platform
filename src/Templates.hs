@@ -12,10 +12,11 @@ module Templates
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-import Flow (Question (answer_type), getQuestionForAnswer, AnswerType (SingleSelect))
+import Flow (Question (answer_type), getQuestionForAnswer, AnswerType (SingleSelect, FreeText))
 import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
+import Debug.Trace (trace)
 
 searchSpace :: [FilePath]
 searchSpace = ["./templates"]
@@ -44,9 +45,10 @@ instance ToMustache Product where
 data ProductQuestion = ProductQuestion 
     { prod :: Product
     , question :: Maybe Question
+    , err :: Maybe String
     } deriving (Show)
 
-getOrgQuestion :: Product -> Maybe Question -> ProductQuestion
+getOrgQuestion :: Product -> Maybe Question -> Maybe String -> ProductQuestion
 getOrgQuestion = ProductQuestion
 
 instance ToMustache ProductQuestion where
@@ -76,17 +78,17 @@ templateOrError tmpl = do
         Right t' -> return t'
     
 
-buildTemplate :: Maybe String -> Product -> [Question] -> IO T.Text
-buildTemplate aid prod' qf =
+buildTemplate :: Maybe String -> Maybe String -> Product -> [Question] -> IO T.Text
+buildTemplate aid err prod' qf =
     let
         q = getQuestionForAnswer aid qf
-        pq = ProductQuestion prod' q
+        pq = trace ("Next q: " ++ show q) ProductQuestion prod' q err
     in do
         case aid of 
             Nothing -> do
                 t' <- templateOrError indexTemplate
                 return $ substitute t' pq
-            Just _ ->
+            Just aid' ->
                 case q of
                     Nothing -> do
                         t' <- templateOrError questionTemplate
@@ -97,9 +99,10 @@ buildTemplate aid prod' qf =
                             SingleSelect -> do
                                 t' <- templateOrError singleSelectQuestionTemplate
                                 return $ substitute t' pq
-                            _ -> do
+                            FreeText -> do
                                 t' <- templateOrError questionTemplate
                                 return $ substitute t' pq
+                            _ -> error $ "No answer type implemented for " ++ show answerType
                             
                             
 

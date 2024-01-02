@@ -4,11 +4,12 @@ module Main (main) where
 import Web.Scotty (scotty, get, html, params, post, body)
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
-import Data.Foldable (find)
-import Flow (getQuestionFlow)
+import Data.Foldable (find, Foldable (product))
+import qualified Flow as F (getQuestionFlow, getAnswerById, validate) 
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
+import Data.Text.Internal.Encoding.Utf32 (validate)
 
 port :: Int
 port = 3000
@@ -51,7 +52,7 @@ parseFromBody bod key =
     
 main :: IO ()
 main = do
-    questionFlow <- getQuestionFlow 
+    questionFlow <- F.getQuestionFlow 
     scotty port $ do
         get "/" $ do
             t <- liftIO $ readFile "./templates/home.mustache"
@@ -59,14 +60,21 @@ main = do
         get "/:prod" $ do
             ps <- params
             let p = getParam "prod" ps
-            t <- liftIO $ buildTemplate Nothing (getProduct p) questionFlow
+            t <- liftIO $ buildTemplate Nothing Nothing (getProduct p) questionFlow
             html $  TL.fromStrict t
         post "/:prod/answer/:aid" $ do
             ps <- params
             b <- body
-            let o = getParam "prod" ps
-                ans = parseFromBody (trimChar '"' $ show b) "answer"
-                org' = getProduct o
+            let p' = getParam "prod" ps
                 aid = getParam "aid" ps
-            t <- trace ("body: " ++ show b ++ "\nans: " ++ show ans) liftIO $ buildTemplate (Just $ TL.unpack aid) org' questionFlow
+                ans = parseFromBody (trimChar '"' $ show b) "answer"
+                answer = F.getAnswerById (show aid) questionFlow
+                valid = case answer of
+                    Nothing -> False
+                    Just answer' -> F.validate answer' (show ans)
+                product' = getProduct p'
+            t <- if valid
+            then trace ("body: " ++ show b ++ "\nans: " ++ show ans) liftIO $ buildTemplate (Just $ TL.unpack aid) Nothing product' questionFlow
+            else trace ("body: " ++ show b ++ "\nans: " ++ show ans) liftIO $ buildTemplate (Just $ TL.unpack aid) (Just "Validation failed") product' questionFlow
+
             html $ TL.fromStrict t

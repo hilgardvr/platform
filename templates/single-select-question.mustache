@@ -1,11 +1,14 @@
 <div id="question">
     <h2>Question: {{question.description}}</h2>
     <h4>Debug {{question.answers}}</h4>
-    <select name="answer">
-    <form hx-post="{{prod.name}}/answer/{{aid}}" hx-target="#question">
-        {{#question.answers}}
-            <option value="answer">{{answer_description}}</option>
-        {{/question.answers}}
-        <input type="submit" value="Submit"/>
-    </form>
+    {{#question.answers}}
+        <button 
+            hx-post="{{prod.name}}/answer/{{aid}}" 
+            hx-target="#question"
+            name="answer"
+            value="{{answer_description}}"
+            >
+            {{answer_description}}
+        </button>
+    {{/question.answers}}
 </div>
