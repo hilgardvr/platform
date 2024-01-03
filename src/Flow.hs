@@ -8,8 +8,9 @@ module Flow
     , AnswerType (SingleSelect, FreeText)
     , AnswerMapping
     , getQuestionFlow
-    , getQuestionForAnswer
+    , getNextQuestionForAnswer
     , getAnswerById
+    , getQuestionFromAnswerId
     ) where
 
 import Text.Mustache (ToMustache (toMustache), object, (~>))
@@ -18,6 +19,7 @@ import GHC.Generics (Generic)
 import qualified Data.ByteString.Lazy as B
 import Data.List (find)
 import Text.Read (readMaybe)
+import Debug.Trace (trace)
 
 flowFile :: FilePath
 flowFile = "./migrations/1.flow.json"
@@ -53,12 +55,13 @@ instance FromJSON Answer
 instance ToJSON Answer
 instance Validatable Answer where
     validate ans val = 
-        case answer_mapping ans of
+        let am = trace ("AnswerMapping: " ++ (show $ answer_mapping ans) ++ "\n") answer_mapping ans
+        in case am of
             Age -> 
-                let val' = readMaybe val :: Maybe Int
+                let val' = trace ("AnswerMapping2: " ++ (show $ answer_mapping ans) ++ "\n") readMaybe val :: Maybe Int
                 in case val' of
-                    Nothing -> False
-                    Just a -> a >= 18 && a <= 65
+                    Nothing -> trace ("read: " ++ show val') False
+                    Just a -> trace ("read: " ++ show val')  a >= 18 && a <= 65
             Plan -> True
             Id -> True
             _ -> True
@@ -90,15 +93,17 @@ getQuestionFlow = do
         Nothing -> error "Could not decode flow json"
         Just d -> return d
 
-getAnswerById :: String -> [Question] -> Maybe Answer
+getAnswerById :: String -> [Question] -> Answer
 getAnswerById ansId qs = 
-    let
-        ans' = concatMap answers qs
-    in find (\a -> aid a == ansId)  ans'
+    let ans' = concatMap answers qs
+        found =  find (\a -> aid a == ansId)  ans'
+    in case found of
+        Nothing -> error $ "No answer found for answerId: " ++ ansId
+        Just a -> a
 
-getQuestionForAnswer :: Maybe String -> [Question] -> Maybe Question
-getQuestionForAnswer Nothing qs = find (\e -> qid e == "1") qs
-getQuestionForAnswer (Just ans) qs = 
+getNextQuestionForAnswer :: Maybe String -> [Question] -> Maybe Question
+getNextQuestionForAnswer Nothing qs = find (\e -> qid e == "1") qs
+getNextQuestionForAnswer (Just ans) qs = 
     let
         ans' = concatMap answers qs
     in
@@ -108,3 +113,17 @@ getQuestionForAnswer (Just ans) qs =
             case next_question a of 
                 Nothing -> Nothing 
                 Just q' -> find (\e -> qid e == q') qs
+
+getQuestionFromAnswerId :: Maybe String -> [Question] -> Maybe Question
+getQuestionFromAnswerId Nothing qs = find (\e -> qid e == "1") qs
+getQuestionFromAnswerId (Just ans) qs = 
+    find (\q -> 
+        let 
+            q_ans' = answers q
+            maybeA = find (\a -> aid a == ans) q_ans'
+        in
+            case maybeA of
+                Nothing -> False
+                Just _ -> True
+
+    ) qs

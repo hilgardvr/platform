@@ -12,7 +12,7 @@ module Templates
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-import Flow (Question (answer_type), getQuestionForAnswer, AnswerType (SingleSelect, FreeText))
+import Flow (Question (answer_type), getNextQuestionForAnswer, AnswerType (SingleSelect, FreeText), getQuestionFromAnswerId)
 import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
@@ -52,10 +52,11 @@ getOrgQuestion :: Product -> Maybe Question -> Maybe String -> ProductQuestion
 getOrgQuestion = ProductQuestion
 
 instance ToMustache ProductQuestion where
-    toMustache ( ProductQuestion { prod = o , question = q }) = 
+    toMustache ( ProductQuestion { prod = o , question = q, err = e }) = 
         object 
             [ "prod" ~> o
             , "question" ~> q
+            , "err" ~> e
             ]
 
 compiledTemplates :: IO TemplateCache
@@ -81,9 +82,20 @@ templateOrError tmpl = do
 buildTemplate :: Maybe String -> Maybe String -> Product -> [Question] -> IO T.Text
 buildTemplate aid err prod' qf =
     let
-        q = getQuestionForAnswer aid qf
-        pq = trace ("Next q: " ++ show q) ProductQuestion prod' q err
-    in do
+        (q, pq) = case err of
+            Nothing -> 
+                let
+                    q = getNextQuestionForAnswer aid qf
+                    pq = trace ("Next q: " ++ show q) ProductQuestion prod' q Nothing
+                in
+                    (q, pq)
+            Just err' -> 
+                let
+                    q = getQuestionFromAnswerId aid qf
+                    pq = trace ("Err: " ++ err') ProductQuestion prod' q (Just err')
+                in
+                    (q, pq)
+    in
         case aid of 
             Nothing -> do
                 t' <- templateOrError indexTemplate
@@ -103,6 +115,7 @@ buildTemplate aid err prod' qf =
                                 t' <- templateOrError questionTemplate
                                 return $ substitute t' pq
                             _ -> error $ "No answer type implemented for " ++ show answerType
+                
                             
                             
 
