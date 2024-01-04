@@ -5,7 +5,7 @@ module Flow
     ( Question (answer_type)
     , Answer
     , validate
-    , AnswerType (SingleSelect, FreeText)
+    , AnswerType (SingleSelect, FreeText, DatePicker)
     , AnswerMapping
     , getQuestionFlow
     , getNextQuestionForAnswer
@@ -72,7 +72,10 @@ instance ToMustache Answer where
         , "answer_description" ~> answer_description a
         ]
 
-data AnswerType = FreeText | SingleSelect deriving (Show, Generic)
+data AnswerType = 
+    FreeText 
+    | SingleSelect
+    | DatePicker deriving (Show, Generic)
 
 instance FromJSON AnswerType
 instance ToJSON AnswerType
@@ -81,7 +84,8 @@ data AnswerMapping =
     Age 
     | Gender 
     | Plan 
-    | Id deriving (Show, Generic)
+    | Id 
+    | PersonalDetails deriving (Show, Generic, Read)
 
 instance FromJSON AnswerMapping
 instance ToJSON AnswerMapping

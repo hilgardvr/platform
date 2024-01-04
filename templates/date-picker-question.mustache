@@ -1,17 +1,14 @@
 <div id="question">
     <h2>Question: {{question.description}}</h2>
     <h4>Debug {{question.answers}}</h4>
-    <h4>Err: {{err}}</h4>
-
     {{#question.answers}}
         <form 
          hx-post="/{{prod.name}}/answer/{{aid}}" 
          hx-target="#question"
          hx-push-url="true"
         >
-            <input type="text" name="answer"/>
+            <input type="date" name="answer"/>
             <input type="submit" value="Submit"/>
         </form>
     {{/question.answers}}
 </div>
-

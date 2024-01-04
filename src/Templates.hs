@@ -12,7 +12,7 @@ module Templates
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-import Flow (Question (answer_type), getNextQuestionForAnswer, AnswerType (SingleSelect, FreeText), getQuestionFromAnswerId)
+import Flow (Question (answer_type), getNextQuestionForAnswer, AnswerType (SingleSelect, FreeText, DatePicker), getQuestionFromAnswerId)
 import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
@@ -29,6 +29,9 @@ questionTemplate = "question.mustache"
 
 singleSelectQuestionTemplate :: FilePath
 singleSelectQuestionTemplate = "single-select-question.mustache"
+
+datePickerQuestionTemplate :: FilePath
+datePickerQuestionTemplate = "date-picker-question.mustache"
 
 homeTemplate :: FilePath
 homeTemplate = "home.mustache"
@@ -114,7 +117,9 @@ buildTemplate aid err prod' qf =
                             FreeText -> do
                                 t' <- templateOrError questionTemplate
                                 return $ substitute t' pq
-                            _ -> error $ "No answer type implemented for " ++ show answerType
+                            DatePicker -> do
+                                t' <- templateOrError datePickerQuestionTemplate
+                                return $ substitute t' pq
                 
                             
                             

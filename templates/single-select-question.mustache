@@ -3,11 +3,12 @@
     <h4>Debug {{question.answers}}</h4>
     {{#question.answers}}
         <button 
-            hx-post="{{prod.name}}/answer/{{aid}}" 
+            hx-post="/{{prod.name}}/answer/{{aid}}" 
             hx-target="#question"
+            hx-push-url="true"
             name="answer"
             value="{{answer_description}}"
-            >
+        >
             {{answer_description}}
         </button>
     {{/question.answers}}
