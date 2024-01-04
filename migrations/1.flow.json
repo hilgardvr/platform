@@ -171,10 +171,227 @@
         "answer_type": "DatePicker", 
         "answers": [
             {
-                "aid": "16",
-                "answer_description": "Address",
+                "aid": "17",
+                "answer_description": "Cover start date",
                 "answer_mapping": "PersonalDetails",
-                "next_question": ""
+                "next_question": "12"
+            }
+        ]
+    },
+    {
+        "qid": "12",
+        "description": "Payment method",
+        "answer_type": "SingleSelect", 
+        "answers": [
+            {
+                "aid": "18",
+                "answer_description": "Debit order",
+                "answer_mapping": "Payment",
+                "next_question": "13"
+            },
+            {
+                "aid": "19",
+                "answer_description": "Persal",
+                "answer_mapping": "Payment",
+                "next_question": "17"
+            }
+        ]
+    },
+    {
+        "qid": "13",
+        "description": "Bank",
+        "answer_type": "SingleSelect", 
+        "answers": [
+            {
+                "aid": "20",
+                "answer_description": "ABSA",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "21",
+                "answer_description": "African Bank",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "22",
+                "answer_description": "Capitec",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "23",
+                "answer_description": "Discovery Bank",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "24",
+                "answer_description": "FNB",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "25",
+                "answer_description": "Investec",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "26",
+                "answer_description": "Persal",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "27",
+                "answer_description": "Investec",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "28",
+                "answer_description": "Nedbank",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "29",
+                "answer_description": "Standard Bank",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            },
+            {
+                "aid": "30",
+                "answer_description": "TymeBank",
+                "answer_mapping": "Payment",
+                "next_question": "14"
+            }
+        ]
+    },
+    {
+        "qid": "14",
+        "description": "Account Number",
+        "answer_type": "FreeText", 
+        "answers": [
+            {
+                "aid": "31",
+                "answer_description": "Account Number",
+                "answer_mapping": "Payment",
+                "next_question": "15"
+            }
+        ]
+    },
+    {
+        "qid": "15",
+        "description": "Account Type",
+        "answer_type": "SingleSelect", 
+        "answers": [
+            {
+                "aid": "32",
+                "answer_description": "Cheque",
+                "answer_mapping": "Payment",
+                "next_question": "16"
+            },
+            {
+                "aid": "33",
+                "answer_description": "Saving",
+                "answer_mapping": "Payment",
+                "next_question": "16"
+            },
+            {
+                "aid": "34",
+                "answer_description": "Transmission",
+                "answer_mapping": "Payment",
+                "next_question": "16"
+            }
+        ]
+    },
+    {
+        "qid": "16",
+        "description": "Does this account accept debit orders",
+        "answer_type": "SingleSelect", 
+        "answers": [
+            {
+                "aid": "35",
+                "answer_description": "Yes",
+                "answer_mapping": "Payment",
+                "next_question": "18"
+            },
+            {
+                "aid": "36",
+                "answer_description": "No",
+                "answer_mapping": "Payment",
+                "next_question": "18"
+            }
+        ]
+    },
+    {
+        "qid": "17",
+        "description": "Persal employee number",
+        "answer_type": "FreeText", 
+        "answers": [
+            {
+                "aid": "37",
+                "answer_description": "Yes",
+                "answer_mapping": "Payment",
+                "next_question": "13"
+            }
+        ]
+    },
+    {
+        "qid": "18",
+        "description": "KYC - Source of funds",
+        "answer_type": "SingleSelect", 
+        "answers": [
+            {
+                "aid": "38",
+                "answer_description": "Salary",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "39",
+                "answer_description": "Savings",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "40",
+                "answer_description": "Inheritence",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "41",
+                "answer_description": "Investments",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "41",
+                "answer_description": "Retirement",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "42",
+                "answer_description": "Bonus",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "43",
+                "answer_description": "Loan",
+                "answer_mapping": "Payment",
+                "next_question": "19"
+            },
+            {
+                "aid": "44",
+                "answer_description": "Other",
+                "answer_mapping": "Payment",
+                "next_question": "19"
             }
         ]
     }

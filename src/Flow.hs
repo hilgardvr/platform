@@ -85,7 +85,8 @@ data AnswerMapping =
     | Gender 
     | Plan 
     | Id 
-    | PersonalDetails deriving (Show, Generic, Read)
+    | PersonalDetails 
+    | Payment deriving (Show, Generic, Read)
 
 instance FromJSON AnswerMapping
 instance ToJSON AnswerMapping
