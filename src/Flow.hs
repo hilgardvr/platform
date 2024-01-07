@@ -2,16 +2,18 @@
 {-# LANGUAGE DeriveGeneric #-}
 
 module Flow 
-    ( Question (answer_type)
-    , Answer
-    , validate
-    , AnswerType (SingleSelect, FreeText, DatePicker)
-    , AnswerMapping
-    , getQuestionFlow
-    , getNextQuestionForAnswer
-    , getAnswerById
-    , getQuestionFromAnswerId
-    ) where
+( Question (answer_type)
+, Answer
+, validate
+, AnswerType (SingleSelect, FreeText, DatePicker)
+, AnswerMapping
+, getQuestionFlow
+, getNextQuestionForAnswer
+, getAnswerById
+, getQuestionFromAnswerId
+, qid
+, description
+) where
 
 import Text.Mustache (ToMustache (toMustache), object, (~>))
 import Data.Aeson (FromJSON, ToJSON, decode)
@@ -22,7 +24,7 @@ import Text.Read (readMaybe)
 import Debug.Trace (trace)
 
 flowFile :: FilePath
-flowFile = "./migrations/1.flow.json"
+flowFile = "./product/protector.1.json"
 
 class Validatable a where
     validate :: a -> String -> Bool
@@ -119,16 +121,22 @@ getNextQuestionForAnswer (Just ans) qs =
                 Nothing -> Nothing 
                 Just q' -> find (\e -> qid e == q') qs
 
-getQuestionFromAnswerId :: Maybe String -> [Question] -> Maybe Question
-getQuestionFromAnswerId Nothing qs = find (\e -> qid e == "1") qs
+getQuestionFromAnswerId :: Maybe String -> [Question] -> Question
+getQuestionFromAnswerId Nothing qs = 
+    let q = find (\e -> qid e == "1") qs
+    in case q of 
+        Nothing -> error "Could not find question id 1"
+        Just q' -> q'
 getQuestionFromAnswerId (Just ans) qs = 
-    find (\q -> 
-        let 
-            q_ans' = answers q
-            maybeA = find (\a -> aid a == ans) q_ans'
-        in
+    let q = find (\q' -> 
+            let 
+                q_ans' = answers q'
+                maybeA = find (\a -> aid a == ans) q_ans'
+            in
             case maybeA of
                 Nothing -> False
                 Just _ -> True
-
-    ) qs
+            ) qs
+    in case q of
+        Nothing -> error $ "No question found for answerId: " ++ ans
+        Just q' -> q'

@@ -9,6 +9,8 @@ import qualified Flow as F (getQuestionFlow, getAnswerById, validate)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
+import Migrations (openDatabase)
+import FlowService (handleFlow)
 
 port :: Int
 port = 3000
@@ -54,6 +56,7 @@ parseFromBody bod key =
 main :: IO ()
 main = do
     questionFlow <- F.getQuestionFlow 
+    conn <- openDatabase dbName
     scotty port $ do
         get "/" $ do
             t <- liftIO $ readFile "./templates/home.mustache"
@@ -63,17 +66,24 @@ main = do
             let p = getParam "prod" ps
             t <- liftIO $ buildTemplate Nothing Nothing (getProduct p) questionFlow
             html $  TL.fromStrict t
+        --post "/:prod/answer/:aid" $ do
+        --    ps <- params
+        --    b <- body
+        --    let p' = getParam "prod" ps
+        --        aid = getParam "aid" ps
+        --        userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
+        --        answer = trace ("userAnswer: " ++ show userAnswer) F.getAnswerById (TL.unpack aid) questionFlow
+        --        valid = F.validate answer userAnswer
+        --        product' = trace ("answer: " ++ show answer) getProduct p'
+        --    t <- if valid
+        --    then trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) Nothing product' questionFlow
+        --    else trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) (Just "Validation failed") product' questionFlow
+        --    html $ TL.fromStrict t
         post "/:prod/answer/:aid" $ do
             ps <- params
             b <- body
             let p' = getParam "prod" ps
                 aid = getParam "aid" ps
                 userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
-                answer = trace ("userAnswer: " ++ show userAnswer) F.getAnswerById (TL.unpack aid) questionFlow
-                valid = F.validate answer userAnswer
-                product' = trace ("answer: " ++ show answer) getProduct p'
-            t <- if valid
-            then trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) Nothing product' questionFlow
-            else trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) (Just "Validation failed") product' questionFlow
-
+            t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer conn
             html $ TL.fromStrict t

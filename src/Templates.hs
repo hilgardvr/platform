@@ -83,21 +83,21 @@ templateOrError tmpl = do
     
 
 buildTemplate :: Maybe String -> Maybe String -> Product -> [Question] -> IO T.Text
-buildTemplate aid err prod' qf =
+buildTemplate aid err' prod' qf =
     let
-        (q, pq) = case err of
+        (q, pq) = case err' of
             Nothing -> 
                 let
-                    q = getNextQuestionForAnswer aid qf
-                    pq = trace ("Next q: " ++ show q) ProductQuestion prod' q Nothing
+                    q' = getNextQuestionForAnswer aid qf
+                    pq' = trace ("Next q: " ++ show q') ProductQuestion prod' q' Nothing
                 in
-                    (q, pq)
+                    (q', pq')
             Just err' -> 
                 let
                     q = getQuestionFromAnswerId aid qf
-                    pq = trace ("Err: " ++ err') ProductQuestion prod' q (Just err')
+                    pq = trace ("Err: " ++ err') ProductQuestion prod' (Just q) (Just err')
                 in
-                    (q, pq)
+                    (Just q, pq)
     in
         case aid of 
             Nothing -> do

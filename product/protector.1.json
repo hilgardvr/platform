@@ -239,12 +239,6 @@
                 "next_question": "14"
             },
             {
-                "aid": "26",
-                "answer_description": "Persal",
-                "answer_mapping": "Payment",
-                "next_question": "14"
-            },
-            {
                 "aid": "27",
                 "answer_description": "Investec",
                 "answer_mapping": "Payment",
