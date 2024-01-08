@@ -5,7 +5,7 @@ import Web.Scotty (scotty, get, html, params, post, body)
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
 import Data.Foldable (find)
-import qualified Flow as F (getQuestionFlow, getAnswerById, validate) 
+import qualified Flow as F (getQuestionFlow) 
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
@@ -65,25 +65,12 @@ main = do
             ps <- params
             let p = getParam "prod" ps
             t <- liftIO $ buildTemplate Nothing Nothing (getProduct p) questionFlow
-            html $  TL.fromStrict t
-        --post "/:prod/answer/:aid" $ do
-        --    ps <- params
-        --    b <- body
-        --    let p' = getParam "prod" ps
-        --        aid = getParam "aid" ps
-        --        userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
-        --        answer = trace ("userAnswer: " ++ show userAnswer) F.getAnswerById (TL.unpack aid) questionFlow
-        --        valid = F.validate answer userAnswer
-        --        product' = trace ("answer: " ++ show answer) getProduct p'
-        --    t <- if valid
-        --    then trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) Nothing product' questionFlow
-        --    else trace ("body: " ++ show b ++ "\nans: " ++ show userAnswer) liftIO $ buildTemplate (Just $ TL.unpack aid) (Just "Validation failed") product' questionFlow
-        --    html $ TL.fromStrict t
+            html $ TL.fromStrict t
         post "/:prod/answer/:aid" $ do
             ps <- params
             b <- body
             let p' = getParam "prod" ps
                 aid = getParam "aid" ps
                 userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
-            t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer conn
+            t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer questionFlow conn
             html $ TL.fromStrict t

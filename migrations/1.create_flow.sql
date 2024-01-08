@@ -1,5 +1,5 @@
 create table if not exists flow (
-    id text primary key not null,
+    id integer primary key not null,
     product text not null,
     qid text not null,
     question_description text not null,

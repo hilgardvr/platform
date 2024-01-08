@@ -11,7 +11,7 @@ createQuery :: String -> Query
 createQuery = Query . T.pack
 
 data Flow = Flow
-    { id :: String
+    { id :: Maybe Integer
     , product :: String
     , qid :: String
     , question_description :: String
@@ -24,13 +24,13 @@ instance FromRow Flow where
     fromRow = Flow <$> field <*> field <*> field <*> field <*> field <*> field <*> field
 
 instance ToRow Flow where
-    toRow (Flow id' product' qid' question_description' aid' answer' status') = toRow (id', product', qid', question_description', aid', answer', status')
+    toRow (Flow id' product' qid' question_description' aid' answer' status') = toRow (Nothing :: Maybe Integer, product', qid', question_description', aid', answer', status')
 
 insertFlowAnswer :: Connection -> Flow -> IO ()
 insertFlowAnswer conn flow = do
     execute conn (createQuery "insert into flow (id, product, qid, question_description, aid, answer, status) values (?,?,?,?,?,?,?)") flow
 
-getFlow :: String -> String -> String -> String -> String -> String -> String -> Flow
+getFlow :: Maybe Integer -> String -> String -> String -> String -> String -> String -> Flow
 getFlow = Flow
 
 

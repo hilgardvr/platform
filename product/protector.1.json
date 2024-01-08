@@ -83,19 +83,19 @@
             {
                 "aid": "9",
                 "answer_description": "Mr",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "Title",
                 "next_question": "6"
             },
             {
                 "aid": "10",
                 "answer_description": "Mrs",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "Title",
                 "next_question": "6"
             },
             {
                 "aid": "11",
                 "answer_description": "Miss",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "Title",
                 "next_question": "6"
             }
         ]
@@ -108,7 +108,7 @@
             {
                 "aid": "12",
                 "answer_description": "First name",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "FirstName",
                 "next_question": "7"
             }
         ]
@@ -121,7 +121,7 @@
             {
                 "aid": "13",
                 "answer_description": "Last name",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "LastName",
                 "next_question": "8"
             }
         ]
@@ -134,7 +134,7 @@
             {
                 "aid": "14",
                 "answer_description": "Email",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "Email",
                 "next_question": "9"
             }
         ]
@@ -147,7 +147,7 @@
             {
                 "aid": "15",
                 "answer_description": "Mobile number",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "MobileNumber",
                 "next_question": "10"
             }
         ]
@@ -160,7 +160,7 @@
             {
                 "aid": "16",
                 "answer_description": "Address",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "Address",
                 "next_question": "11"
             }
         ]
@@ -173,7 +173,7 @@
             {
                 "aid": "17",
                 "answer_description": "Cover start date",
-                "answer_mapping": "PersonalDetails",
+                "answer_mapping": "CoverStart",
                 "next_question": "12"
             }
         ]
@@ -186,13 +186,13 @@
             {
                 "aid": "18",
                 "answer_description": "Debit order",
-                "answer_mapping": "Payment",
+                "answer_mapping": "PaymentMethod",
                 "next_question": "13"
             },
             {
                 "aid": "19",
                 "answer_description": "Persal",
-                "answer_mapping": "Payment",
+                "answer_mapping": "PaymentMethod",
                 "next_question": "17"
             }
         ]
@@ -205,61 +205,55 @@
             {
                 "aid": "20",
                 "answer_description": "ABSA",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "21",
                 "answer_description": "African Bank",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "22",
                 "answer_description": "Capitec",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "23",
                 "answer_description": "Discovery Bank",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "24",
                 "answer_description": "FNB",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "25",
                 "answer_description": "Investec",
-                "answer_mapping": "Payment",
-                "next_question": "14"
-            },
-            {
-                "aid": "27",
-                "answer_description": "Investec",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "28",
                 "answer_description": "Nedbank",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "29",
                 "answer_description": "Standard Bank",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             },
             {
                 "aid": "30",
                 "answer_description": "TymeBank",
-                "answer_mapping": "Payment",
+                "answer_mapping": "Bank",
                 "next_question": "14"
             }
         ]
@@ -272,7 +266,7 @@
             {
                 "aid": "31",
                 "answer_description": "Account Number",
-                "answer_mapping": "Payment",
+                "answer_mapping": "BankAccountNumber",
                 "next_question": "15"
             }
         ]
@@ -285,19 +279,19 @@
             {
                 "aid": "32",
                 "answer_description": "Cheque",
-                "answer_mapping": "Payment",
+                "answer_mapping": "BankAccountType",
                 "next_question": "16"
             },
             {
                 "aid": "33",
                 "answer_description": "Saving",
-                "answer_mapping": "Payment",
+                "answer_mapping": "BankAccountType",
                 "next_question": "16"
             },
             {
                 "aid": "34",
                 "answer_description": "Transmission",
-                "answer_mapping": "Payment",
+                "answer_mapping": "BankAccountType",
                 "next_question": "16"
             }
         ]
@@ -310,13 +304,13 @@
             {
                 "aid": "35",
                 "answer_description": "Yes",
-                "answer_mapping": "Payment",
+                "answer_mapping": "AcceptsDebit",
                 "next_question": "18"
             },
             {
                 "aid": "36",
                 "answer_description": "No",
-                "answer_mapping": "Payment",
+                "answer_mapping": "AcceptsDebit",
                 "next_question": "18"
             }
         ]
@@ -329,7 +323,7 @@
             {
                 "aid": "37",
                 "answer_description": "Yes",
-                "answer_mapping": "Payment",
+                "answer_mapping": "PersalNumber",
                 "next_question": "13"
             }
         ]
@@ -342,50 +336,63 @@
             {
                 "aid": "38",
                 "answer_description": "Salary",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "39",
                 "answer_description": "Savings",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "40",
                 "answer_description": "Inheritence",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "41",
                 "answer_description": "Investments",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "41",
                 "answer_description": "Retirement",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "42",
                 "answer_description": "Bonus",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "43",
                 "answer_description": "Loan",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
             },
             {
                 "aid": "44",
                 "answer_description": "Other",
-                "answer_mapping": "Payment",
+                "answer_mapping": "SourceOfFunds",
                 "next_question": "19"
+            }
+        ]
+    },
+    {
+        "qid": "19",
+        "description": "Summary",
+        "answer_type": "Finalise",
+        "answers": [
+            {
+                "aid": "45",
+                "answer_description": "Issue Policy",
+                "answer_mapping": "IssuePolicy",
+                "next_question": null
             }
         ]
     }

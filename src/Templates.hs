@@ -12,7 +12,7 @@ module Templates
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
-import Flow (Question (answer_type), getNextQuestionForAnswer, AnswerType (SingleSelect, FreeText, DatePicker), getQuestionFromAnswerId)
+import Flow (Question (answer_type), getNextQuestionForAnswer, AnswerType (SingleSelect, FreeText, DatePicker, Finalise), getQuestionFromAnswerId)
 import Text.Mustache (ToMustache (toMustache), object, automaticCompile, compileTemplateWithCache, substitute, Template)
 import Text.Mustache.Types ((~>), TemplateCache)
 import Text.Mustache.Compile (cacheFromList)
@@ -119,6 +119,9 @@ buildTemplate aid err' prod' qf =
                                 return $ substitute t' pq
                             DatePicker -> do
                                 t' <- templateOrError datePickerQuestionTemplate
+                                return $ substitute t' pq
+                            Finalise -> do
+                                t' <- templateOrError singleSelectQuestionTemplate
                                 return $ substitute t' pq
                 
                             
