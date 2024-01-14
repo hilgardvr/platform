@@ -29,6 +29,10 @@ dependencies:
 - directory
 - aeson
 - bytestring
+- scotty-cookie
+- string-random
+- time
+- uuid
 
 ghc-options:
 - -Wall

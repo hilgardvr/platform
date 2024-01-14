@@ -1,7 +1,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Main (main) where
-import Web.Scotty (scotty, get, html, params, post, body)
+module Main 
+( main 
+) where
+import Web.Scotty (scotty, get, html, params, post, body, redirect)
 import qualified Data.Text.Lazy as TL
 import Debug.Trace (trace)
 import Data.Foldable (find)
@@ -11,6 +13,37 @@ import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
 import Migrations (openDatabase)
 import FlowService (handleFlow)
+import Web.Scotty.Cookie (makeSimpleCookie, getCookie, setCookie)
+import qualified Data.Text as T
+
+
+main :: IO ()
+main = do
+    questionFlow <- F.getQuestionFlow 
+    conn <- openDatabase dbName
+    scotty port $ do
+        get "/" $ do
+            t <- liftIO $ readFile "./templates/home.mustache"
+            html $ TL.pack t
+        get "/:prod" $ do
+            ps <- params
+            let p = getParam "prod" ps
+                c = makeSimpleCookie "platform" "demo"
+            t <- liftIO $ buildTemplate Nothing Nothing (getProduct p) questionFlow
+            setCookie c
+            html $ TL.fromStrict t
+        post "/:prod/answer/:aid" $ do
+            ps <- params
+            b <- body
+            cookie <- getCookie "platform"
+            case cookie of
+                Nothing -> redirect "/"
+                Just c -> do
+                    let p' = trace ("cookie: " ++ show c) getParam "prod" ps
+                        aid = getParam "aid" ps
+                        userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
+                    t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer (T.unpack c) questionFlow conn
+                    html $ TL.fromStrict t
 
 port :: Int
 port = 3000
@@ -52,25 +85,3 @@ parseFromBody bod key =
     in case pair of 
         Just pr -> snd pr
         Nothing -> error $ "No key found for: " ++ key
-    
-main :: IO ()
-main = do
-    questionFlow <- F.getQuestionFlow 
-    conn <- openDatabase dbName
-    scotty port $ do
-        get "/" $ do
-            t <- liftIO $ readFile "./templates/home.mustache"
-            html $ TL.pack t
-        get "/:prod" $ do
-            ps <- params
-            let p = getParam "prod" ps
-            t <- liftIO $ buildTemplate Nothing Nothing (getProduct p) questionFlow
-            html $ TL.fromStrict t
-        post "/:prod/answer/:aid" $ do
-            ps <- params
-            b <- body
-            let p' = getParam "prod" ps
-                aid = getParam "aid" ps
-                userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
-            t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer questionFlow conn
-            html $ TL.fromStrict t

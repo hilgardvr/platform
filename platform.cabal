@@ -45,8 +45,12 @@ library
     , directory
     , mustache
     , scotty
+    , scotty-cookie
     , sqlite-simple
+    , string-random
     , text
+    , time
+    , uuid
     , wai
   default-language: Haskell2010
 
@@ -67,8 +71,12 @@ executable platform-exe
     , mustache
     , platform
     , scotty
+    , scotty-cookie
     , sqlite-simple
+    , string-random
     , text
+    , time
+    , uuid
     , wai
   default-language: Haskell2010
 
@@ -90,7 +98,11 @@ test-suite platform-test
     , mustache
     , platform
     , scotty
+    , scotty-cookie
     , sqlite-simple
+    , string-random
     , text
+    , time
+    , uuid
     , wai
   default-language: Haskell2010
