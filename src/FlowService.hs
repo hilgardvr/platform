@@ -15,6 +15,7 @@ import Templates (buildTemplate, getProduct)
 import Data.Aeson (ToJSON (toJSON), object, (.=))
 import GHC.Generics (Generic)
 import FlowRepo (getFlowForSession)
+import qualified Data.List as DL
 
 data CoveredLifeType =
     MAIN
@@ -106,8 +107,21 @@ data ProductPricingRequestDTO = ProductPricingRequestDTO
 --    let product = find (product f
     
 
-getPricing :: FR.SessionId -> Integer
-getPricing sess = 1
+makeQuestionAnswer :: [FR.Flow] -> [Question] -> [(Question, FR.Flow)]
+makeQuestionAnswer [] _ = []
+makeQuestionAnswer (h:t) qs = 
+    let
+        q = DL.find (\e -> FR.qid h == F.qid e) qs
+    in
+        case q of 
+            Nothing -> error $ "Could not find question for answer. qid: " ++ FR.qid h  ++ " aid: " ++ FR.aid h
+            Just q' -> (q', h) : makeQuestionAnswer t qs
+
+
+getPricing :: Connection -> FR.SessionId -> [Question] -> IO Integer
+getPricing conn sess questionFlow = do
+    sessionFlow <- getFlowForSession sess conn
+    return 1
 
 handleFlow :: FR.ProductName -> FR.AnswerId -> FR.Answer -> FR.SessionId -> [Question] -> Connection -> IO Text
 handleFlow prod aid userAnswer sess questionFlow conn = do

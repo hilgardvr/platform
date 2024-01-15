@@ -13,6 +13,9 @@ module FlowRepo
 , Status
 , SessionId
 , getFlowForSession
+, Flow
+, qid
+, aid
 ) where
 import Database.SQLite.Simple (Connection, Query (Query), FromRow (fromRow), ToRow (toRow), field, execute, query_, queryNamed, NamedParam((:=)))
 import qualified Data.Text as T
@@ -60,5 +63,5 @@ getAllFlow conn =
     
 getFlowForSession :: SessionId -> Connection -> IO [Flow]
 getFlowForSession sessId conn =
-    let q = createQuery "select * from flow where sess = :sessId"
+    let q = createQuery "select * from flow where sess = :sessId and status = 'VALID'"
     in do queryNamed conn q [":sessId" := sessId]
