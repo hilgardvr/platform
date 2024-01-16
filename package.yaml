@@ -33,6 +33,7 @@ dependencies:
 - string-random
 - time
 - uuid
+- random
 
 ghc-options:
 - -Wall

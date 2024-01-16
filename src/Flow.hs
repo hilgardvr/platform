@@ -13,6 +13,7 @@ module Flow
 , getQuestionFromAnswerId
 , qid
 , description
+, answer_mapping
 ) where
 
 import Text.Mustache (ToMustache (toMustache), object, (~>))

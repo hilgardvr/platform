@@ -44,6 +44,7 @@ library
     , bytestring
     , directory
     , mustache
+    , random
     , scotty
     , scotty-cookie
     , sqlite-simple
@@ -70,6 +71,7 @@ executable platform-exe
     , directory
     , mustache
     , platform
+    , random
     , scotty
     , scotty-cookie
     , sqlite-simple
@@ -97,6 +99,7 @@ test-suite platform-test
     , directory
     , mustache
     , platform
+    , random
     , scotty
     , scotty-cookie
     , sqlite-simple

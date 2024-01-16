@@ -5,6 +5,7 @@ create table if not exists flow (
     question_description text not null,
     aid text not null,
     answer text not null,
+    answer_mapping text,
     status text not null,
     sess text not null
 );
