@@ -17,6 +17,7 @@ module FlowRepo
 , qid
 , aid
 , answer_mapping
+, answer
 ) where
 import Database.SQLite.Simple (Connection, Query (Query), FromRow (fromRow), ToRow (toRow), field, execute, query_, queryNamed, NamedParam((:=)))
 import qualified Data.Text as T
@@ -54,7 +55,7 @@ instance ToRow Flow where
 
 insertFlowAnswer :: Connection -> Flow -> IO ()
 insertFlowAnswer conn flow = do
-    execute conn (createQuery "insert into flow (id, product, qid, question_description, aid, answer, status, sess) values (?,?,?,?,?,?,?,?)") flow
+    execute conn (createQuery "insert into flow (id, product, qid, question_description, aid, answer, answer_mapping, status, sess) values (?,?,?,?,?,?,?,?,?)") flow
 
 buildFlow :: Maybe FlowId -> ProductName -> QuestionId -> QuestionDescription -> AnswerId -> Answer -> AnswerMapping -> Status -> SessionId -> Flow
 buildFlow = Flow

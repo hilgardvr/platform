@@ -95,17 +95,17 @@ data ProductPlanName =
     --DIAMOND_PLAN 
     
 data PlanDto = PlanDto 
-    { planCorrelationId :: String
-    , plan :: ProductPlanName
+    { planCorrelationId :: UUID
+    , plan :: String --ProductPlanName
     } deriving (Read, Show, Generic)
 
 data ProductPricingRequestDTO = ProductPricingRequestDTO 
     { product :: String
     , plans :: [PlanDto]
     , coveredLives :: [ProductCoveredLifeDTO]
-    , commencementDate :: Int
-    , intermediaryId :: Maybe Int
-    , leadSourceId :: Int
+    , commencementDate :: String
+    , intermediaryId :: Maybe UUID
+    , leadSourceId :: UUID
     } deriving (Read, Show, Generic)
 
 
@@ -127,13 +127,28 @@ randUUID =
         (u1, g1) = random g0
     in u1
 
+buildCoveredLife :: [FR.Flow] -> ProductCoveredLifeDTO
+buildCoveredLife flow =
+    let
+        age = trace "start buildCoveredLife" FR.answer . head $ filter (\e -> FR.answer_mapping e == "Age") flow
+        corId = trace ("age" ++ show age) randUUID 
+        coverAmount = trace (show corId) Just 50000
+        gend = FR.answer . head $ filter (\e -> FR.answer_mapping e == "Gender") flow
+        type' = FR.answer . head $ filter (\e -> FR.answer_mapping e == "Plan") flow
+    in
+        ProductCoveredLifeDTO (read age :: Int) (show corId) coverAmount (read gend :: Gender) MAIN
 
-getPricing :: Connection -> FR.SessionId -> [Question] -> IO Integer
-getPricing conn sess questionFlow = do
+
+getPricing :: Connection -> FR.SessionId -> IO ProductPricingRequestDTO
+getPricing conn sess = do
     sessionFlow <- getFlowForSession sess conn
-    let plan = (filter (\e -> FR.answer_mapping e == "Plan") sessionFlow)
-        planDto = [PlanDto (show randUUID) (read . FR.answer_mapping . head $ plan :: ProductPlanName)]
-    return 1
+    let plan = trace (show sessionFlow) FR.answer . head $ filter (\e -> FR.answer_mapping e == "Plan") sessionFlow
+        planDto = trace ("plan" ++ show plan)  [PlanDto randUUID ( plan )]
+        coveredLives = trace ("plandto: " ++ show planDto) buildCoveredLife sessionFlow
+        commencementDate = trace (show coveredLives) FR.answer . head $ filter (\e -> FR.answer_mapping e == "CoverStart") sessionFlow
+        intermediaryId = Just randUUID
+        leadSourceId = randUUID
+    return $ ProductPricingRequestDTO plan planDto [coveredLives] commencementDate intermediaryId leadSourceId
 
 handleFlow :: FR.ProductName -> FR.AnswerId -> FR.Answer -> FR.SessionId -> [Question] -> Connection -> IO Text
 handleFlow prod aid userAnswer sess questionFlow conn = do
@@ -143,7 +158,9 @@ handleFlow prod aid userAnswer sess questionFlow conn = do
         f = FR.buildFlow Nothing prod (F.qid questionAnswered) (F.description questionAnswered) aid userAnswer (show $ F.answer_mapping answer) (if valid then "VALID" else "INVALID") sess
     _ <- FR.insertFlowAnswer conn f
     case F.answer_type questionAnswered of
-        F.Finalise -> buildTemplate (Just aid) (if valid then Nothing else Just "Validation failed") (getProduct $ TL.pack prod) questionFlow
+        F.Finalise -> do
+            pricing <- getPricing conn sess
+            trace (show pricing) buildTemplate (Just aid) (if valid then Nothing else Just "Validation failed") (getProduct $ TL.pack prod) questionFlow
         _ -> buildTemplate (Just aid) (if valid then Nothing else Just "Validation failed") (getProduct $ TL.pack prod) questionFlow
 
         
