@@ -43,6 +43,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , directory
+    , http-conduit
     , mustache
     , random
     , scotty
@@ -69,6 +70,7 @@ executable platform-exe
     , base >=4.7 && <5
     , bytestring
     , directory
+    , http-conduit
     , mustache
     , platform
     , random
@@ -97,6 +99,7 @@ test-suite platform-test
     , base >=4.7 && <5
     , bytestring
     , directory
+    , http-conduit
     , mustache
     , platform
     , random
