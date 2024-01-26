@@ -21,7 +21,7 @@ import qualified Data.List as DL
 import Data.UUID (UUID, fromString)
 import System.Random (mkStdGen, Random (random))
 import Network.HTTP.Client.Conduit (parseRequest, Request (method), RequestBody (RequestBodyBS))
-import Network.HTTP.Simple (httpBS, setRequestBody, getResponseBody, setRequestBasicAuth)
+import Network.HTTP.Simple (httpBS, setRequestBody, getResponseBody, setRequestBasicAuth, setRequestBodyJSON)
 import Data.Aeson.Text (encodeToLazyText)
 import qualified Data.Text.Internal.Builder as BS
 import qualified Data.ByteString as BS
@@ -72,7 +72,7 @@ data PlanQuoteCoverLifeDTO = PlanQuoteCoverLifeDTO
 instance ToJSON PlanQuoteCoverLifeDTO where 
     toJSON (PlanQuoteCoverLifeDTO c p s b) =
         object 
-            [ "correlationId" .= c
+            [ "correlation_id" .= c
             , "premium" .= p 
             , "status" .= s
             , "benefits" .= b
@@ -80,7 +80,7 @@ instance ToJSON PlanQuoteCoverLifeDTO where
 
 instance FromJSON PlanQuoteCoverLifeDTO where 
     parseJSON = withObject "PlanQuoteCoverLifeDTO" $ \v -> PlanQuoteCoverLifeDTO
-        <$> v .: "correlationId"
+        <$> v .: "correlation_id"
         <*> v .: "premium"
         <*> v .: "status"
         <*> v .: "benefits"
@@ -118,8 +118,8 @@ instance ToJSON ProductCoveredLifeDTO where
     toJSON (ProductCoveredLifeDTO age correlationId coverAmount gender type') =
         object 
             [ "age" .= age
-            , "correlationId" .= correlationId
-            , "coverAmount" .= coverAmount
+            , "correlation_id" .= correlationId
+            , "cover_amount" .= coverAmount
             , "gender" .= gender
             , "type" .= type'
             ]
@@ -127,8 +127,8 @@ instance ToJSON ProductCoveredLifeDTO where
 instance FromJSON ProductCoveredLifeDTO where 
     parseJSON = withObject "ProductCoveredLifeDTO" $ \v -> ProductCoveredLifeDTO
         <$> v .: "age"
-        <*> v .: "correlationId"
-        <*> v .: "coverAmount"
+        <*> v .: "correlation_id"
+        <*> v .: "cover_amount"
         <*> v .: "gender"
         <*> v .: "type"
 
@@ -147,16 +147,25 @@ data PlanDto = PlanDto
     , plan :: String --ProductPlanName
     } deriving (Read, Show, Generic)
 
-instance ToJSON PlanDto
-instance FromJSON PlanDto
+instance ToJSON PlanDto where
+    toJSON (PlanDto correlationId plan) =
+        object 
+            [ "correlation_id" .= correlationId
+            , "plan" .= plan
+            ]
+
+instance FromJSON PlanDto where 
+    parseJSON = withObject "PlanDto" $ \v -> PlanDto
+        <$> v .: "correlation_id"
+        <*> v .: "plan"
 
 data ProductPricingRequestDTO = ProductPricingRequestDTO 
     { product' :: String
     , plans :: [PlanDto]
     , coveredLives' :: [ProductCoveredLifeDTO]
     , commencementDate :: String
-    , intermediaryId :: Maybe UUID
-    , leadSourceId :: Maybe UUID
+    , intermediaryId :: Maybe String
+    , leadSourceId :: Maybe String
     } deriving (Read, Show, Generic)
 
 instance ToJSON ProductPricingRequestDTO where
@@ -164,10 +173,10 @@ instance ToJSON ProductPricingRequestDTO where
         object 
             [ "product" .= product'
             , "plans" .= plans
-            , "coveredLives" .= coveredLives'
-            , "commencementDate" .= commencementDate
-            , "intermediaryId" .= intermediaryId
-            , "leadSourceId" .= leadSourceId
+            , "covered_lives" .= coveredLives'
+            , "commencement_date" .= commencementDate
+            , "intermediary_id" .= intermediaryId
+            , "leadSource_id" .= leadSourceId
             ]
 
 makeQuestionAnswer :: [FR.Flow] -> [Question] -> [(Question, FR.Flow)]
@@ -197,7 +206,7 @@ buildCoveredLife flow =
     let
         age = trace "start buildCoveredLife" FR.answer . head $ filter (\e -> FR.answer_mapping e == "Age") flow
         corId = trace ("age" ++ show age) randUUID 
-        coverAmount = trace (show corId) Just 50000
+        coverAmount = trace (show corId) Just 5000000
         gend = FR.answer . head $ filter (\e -> FR.answer_mapping e == "Gender") flow
         type' = FR.answer . head $ filter (\e -> FR.answer_mapping e == "Plan") flow
     in
@@ -207,12 +216,12 @@ buildCoveredLife flow =
 getPricingRequest :: Connection -> FR.SessionId -> IO ProductPricingRequestDTO
 getPricingRequest conn sess = do
     sessionFlow <- getFlowForSession sess conn
-    let plan = "car"--trace (show sessionFlow) FR.answer . head $ filter (\e -> FR.answer_mapping e == "Plan") sessionFlow
-        planDto = trace ("plan" ++ show plan)  [PlanDto randUUID ( plan )]
+    let plan = "protector"--trace (show sessionFlow) FR.answer . head $ filter (\e -> FR.answer_mapping e == "Plan") sessionFlow
+        planDto = trace ("plan" ++ show plan)  [PlanDto randUUID ( "VANILLA_FUNERAL" )]
         coveredLives = trace ("plandto: " ++ show planDto) buildCoveredLife sessionFlow
         commencementDate = trace (show coveredLives) FR.answer . head $ filter (\e -> FR.answer_mapping e == "CoverStart") sessionFlow
-        intermediaryId = Nothing
-        leadSourceId = Nothing
+        intermediaryId = Just "c2334019-a414-460a-9e9e-a9df887827f3"
+        leadSourceId = Just "fde6331d-5b2c-4bfd-aa35-2ed33f88dffb"
     return $ ProductPricingRequestDTO plan planDto [coveredLives] commencementDate intermediaryId leadSourceId
 
 makePricingRequest :: ProductPricingRequestDTO -> IO ProductPricingResponseDTO
@@ -223,8 +232,9 @@ makePricingRequest pr = do
         bod = BS.packChars (show (encode json))
         reqBody = trace ("rqbody: " ++ show bod ++ "\n") RequestBodyBS bod
         reqWithBod = setRequestBody reqBody req
-        reqWithAuth = setRequestBasicAuth "onesparkadmin" "supersecurepassword" reqWithBod
-    res <- httpBS reqWithAuth
+        reqWithAuth = setRequestBasicAuth "root" "supersecurepassword" reqWithBod
+        reqMed = setRequestBodyJSON json reqWithAuth
+    res <- trace (show reqWithAuth) httpBS reqMed
     let result = case decode (BSL.packChars $ show $ getResponseBody res) of
             Nothing -> error $ "Failed to decode response: " ++ show res
             Just v -> v
