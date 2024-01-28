@@ -1,7 +1,9 @@
 <div id="question">
     <h2>Question: {{question.description}}</h2>
-    <h4>Debug {{question.answers}}</h4>
-    <h4>Err: {{err}}</h4>
+    <!--h4>Debug {{question.answers}}</h4-->
+    {{#err}}
+        <h4>Validation failed: {{err}}</h4>
+    {{/err}}
 
     {{#question.answers}}
         <form 
