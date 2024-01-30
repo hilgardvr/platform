@@ -9,6 +9,7 @@ module Templates
 , getProduct
 , getOrgQuestion
 , buildTemplate
+, buildValidation
 ) where
 import qualified Data.Text.Lazy as TL
 import qualified Data.Text as T
@@ -32,6 +33,9 @@ singleSelectQuestionTemplate = "single-select-question.mustache"
 
 datePickerQuestionTemplate :: FilePath
 datePickerQuestionTemplate = "date-picker-question.mustache"
+
+validationErr :: FilePath
+validationErr = "validation.mustache"
 
 homeTemplate :: FilePath
 homeTemplate = "home.mustache"
@@ -81,6 +85,10 @@ templateOrError tmpl = do
         Left err -> error $ show err
         Right t' -> return t'
     
+buildValidation :: Maybe String -> IO T.Text
+buildValidation err = do
+    t <- templateOrError validationErr
+    return $ substitute t err
 
 buildTemplate :: Maybe String -> Maybe String -> Product -> [Question] -> IO T.Text
 buildTemplate aid err' prod' qf =

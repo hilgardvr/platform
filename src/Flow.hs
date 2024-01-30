@@ -28,7 +28,7 @@ flowFile :: FilePath
 flowFile = "./product/protector.1.json"
 
 class Validatable a where
-    validate :: a -> String -> Bool
+    validate :: a -> String -> Maybe String
 
 data Question = Question 
     { qid :: String 
@@ -61,13 +61,18 @@ instance Validatable Answer where
         let am = trace ("AnswerMapping: " ++ (show $ answer_mapping ans) ++ "\n") answer_mapping ans
         in case am of
             Age -> 
-                let val' = trace ("AnswerMapping2: " ++ (show $ answer_mapping ans) ++ "\n") readMaybe val :: Maybe Int
+                let 
+                    val' = trace ("AnswerMapping2: " ++ (show $ answer_mapping ans) ++ "\n") readMaybe val :: Maybe Int
+                    msg = "Age needs to be between 18 and 65"
                 in case val' of
-                    Nothing -> trace ("read: " ++ show val') False
-                    Just a -> trace ("read: " ++ show val')  a >= 18 && a <= 65
-            Plan -> True
-            Id -> True
-            _ -> True
+                    Nothing -> trace ("read: " ++ show val') Just msg
+                    Just a -> 
+                        if a >= 18 && a <= 65
+                        then Nothing
+                        else Just msg
+            Plan -> Nothing
+            Id -> Nothing
+            _ -> Nothing
 
 instance ToMustache Answer where
     toMustache a = object 

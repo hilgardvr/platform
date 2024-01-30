@@ -1,9 +1,9 @@
 <div id="question">
     <h2>Question: {{question.description}}</h2>
     <!--h4>Debug {{question.answers}}</h4-->
-    {{#err}}
-        <h4>Validation failed: {{err}}</h4>
-    {{/err}}
+    <div id="validation">
+        {{> validation.mustache }}
+    </div>
 
     {{#question.answers}}
         <form 
@@ -11,7 +11,13 @@
          hx-target="#question"
          hx-push-url="true"
         >
-            <input type="text" name="answer"/>
+        <input 
+         hx-post="/{{prod.name}}/answer/{{aid}}/validate"
+         hx-trigger="keyup changed delay:1s"
+         hx-target="#validation"
+         type="text" 
+         name="answer"
+        />
             <input type="submit" value="Submit"/>
         </form>
     {{/question.answers}}

@@ -3,6 +3,7 @@
 
 module FlowService
 ( handleFlow
+, validateFlow
 ) where
 import qualified Data.Text as TS
 import qualified Data.Text.Lazy as TL
@@ -13,7 +14,7 @@ import qualified Flow as F
 import qualified FlowRepo as FR
 import Database.SQLite.Simple (Connection)
 import Flow (getQuestionFromAnswerId, Question)
-import Templates (buildTemplate, getProduct)
+import Templates (buildTemplate, getProduct, buildValidation)
 import Data.Aeson (ToJSON (toJSON), object, (.=), FromJSON (parseJSON), (.:), withObject, decode, encode)
 import GHC.Generics (Generic)
 import FlowRepo (getFlowForSession)
@@ -224,7 +225,7 @@ getPricingRequest conn sess = do
         leadSourceId = Just "fde6331d-5b2c-4bfd-aa35-2ed33f88dffb"
     return $ ProductPricingRequestDTO plan planDto [coveredLives] commencementDate intermediaryId leadSourceId
 
-makePricingRequest :: ProductPricingRequestDTO -> IO ProductPricingResponseDTO
+makePricingRequest :: ProductPricingRequestDTO -> IO Int -- IO ProductPricingResponseDTO
 makePricingRequest pr = do
     initReq <- parseRequest "http://localhost:8080/api/v1/prices/product-plan/quote"
     let json = toJSON pr
@@ -234,25 +235,35 @@ makePricingRequest pr = do
         reqWithBod = setRequestBody reqBody req
         reqWithAuth = setRequestBasicAuth "root" "supersecurepassword" reqWithBod
         reqMed = setRequestBodyJSON json reqWithAuth
-    res <- trace (show reqWithAuth) httpBS reqMed
-    let result = case decode (BSL.packChars $ show $ getResponseBody res) of
-            Nothing -> error $ "Failed to decode response: " ++ show res
-            Just v -> v
-    trace (show result) return result
+    -- res <- trace (show reqWithAuth) httpBS reqMed
+    -- let result = case decode (BSL.packChars $ show $ getResponseBody res) of
+    --         Nothing -> error $ "Failed to decode response: " ++ show res
+    --         Just v -> v
+        res = trace (show "Dummy pricing response") 123
+    trace (show res) return res
 
+validateFlow :: FR.ProductName -> FR.AnswerId -> FR.Answer -> FR.SessionId -> [Question] -> Connection -> IO TS.Text
+validateFlow prod aid userAnswer sess questionFlow conn = do
+    let answer = trace ("userAnswer: " ++ show userAnswer) F.getAnswerById aid questionFlow
+        questionAnswered = getQuestionFromAnswerId (Just aid) questionFlow
+        valid = F.validate answer userAnswer
+    buildValidation valid 
 
 handleFlow :: FR.ProductName -> FR.AnswerId -> FR.Answer -> FR.SessionId -> [Question] -> Connection -> IO TS.Text
 handleFlow prod aid userAnswer sess questionFlow conn = do
     let answer = trace ("userAnswer: " ++ show userAnswer) F.getAnswerById aid questionFlow
         questionAnswered = getQuestionFromAnswerId (Just aid) questionFlow
         valid = F.validate answer userAnswer
-        f = FR.buildFlow Nothing prod (F.qid questionAnswered) (F.description questionAnswered) aid userAnswer (show $ F.answer_mapping answer) (if valid then "VALID" else "INVALID") sess
+        frValid = case valid of
+            Just err -> "INVALID"
+            Nothing -> "VALID"
+        f = FR.buildFlow Nothing prod (F.qid questionAnswered) (F.description questionAnswered) aid userAnswer (show $ F.answer_mapping answer) (frValid) sess
     _ <- FR.insertFlowAnswer conn f
     case F.answer_type questionAnswered of
         F.Finalise -> do
             pricingReq <- getPricingRequest conn sess
             pricingRes <- trace (show pricingReq) makePricingRequest pricingReq
-            trace ("response: " ++ show pricingRes) buildTemplate (Just aid) (if valid then Nothing else Just "Validation failed") (getProduct $ TL.pack prod) questionFlow
-        _ -> buildTemplate (Just aid) (if valid then Nothing else Just "Validation failed") (getProduct $ TL.pack prod) questionFlow
+            trace ("response: " ++ show pricingRes) buildTemplate (Just aid) valid (getProduct $ TL.pack prod) questionFlow
+        _ -> buildTemplate (Just aid) (valid) (getProduct $ TL.pack prod) questionFlow
 
         

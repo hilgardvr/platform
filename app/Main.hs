@@ -12,7 +12,7 @@ import Control.Monad.IO.Class (MonadIO(liftIO))
 import Templates (buildTemplate, getProduct)
 import Data.List (elemIndex)
 import Migrations (openDatabase)
-import FlowService (handleFlow)
+import FlowService (handleFlow, validateFlow)
 import Web.Scotty.Cookie (makeSimpleCookie, getCookie, setCookie)
 import qualified Data.Text as T
 
@@ -43,6 +43,18 @@ main = do
                         aid = getParam "aid" ps
                         userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
                     t <- liftIO $ handleFlow (TL.unpack p') (TL.unpack aid) userAnswer (T.unpack c) questionFlow conn
+                    html $ TL.fromStrict t
+        post "/:prod/answer/:aid/validate" $ do
+            ps <- params
+            b <- body
+            cookie <- getCookie "platform"
+            case cookie of
+                Nothing -> redirect "/"
+                Just c -> do
+                    let p' = trace ("cookie: " ++ show c) getParam "prod" ps
+                        aid = getParam "aid" ps
+                        userAnswer = parseFromBody (trimChar '"' $ show b) "answer"
+                    t <- liftIO $ validateFlow (TL.unpack p') (TL.unpack aid) userAnswer (T.unpack c) questionFlow conn
                     html $ TL.fromStrict t
 
 port :: Int
@@ -83,5 +95,5 @@ parseFromBody bod key =
     let pairs = bodyPairs bod
         pair = find (\e -> fst e == key) pairs
     in case pair of 
-        Just pr -> snd pr
+        Just pr -> trace ("found: " ++ (show $ snd pr)) snd pr
         Nothing -> error $ "No key found for: " ++ key
